@@ -1,0 +1,60 @@
+{
+  "name": "prosa",
+  "productName": "Prosa",
+  "version": "1.0.0",
+  "description": "Cliente desktop não oficial para o WhatsApp Web, em português.",
+  "author": "Nicopel",
+  "license": "GPL-3.0",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64",
+    "release": "electron-builder --win --x64 --publish always"
+  },
+  "dependencies": {
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.8.11"
+  },
+  "devDependencies": {
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "br.com.nicopel.prosa",
+    "productName": "Prosa",
+    "copyright": "Baseado no whatsapp-desktop (GPL-3.0)",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json",
+      "LICENSE"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Prosa",
+      "artifactName": "Prosa-Setup-${version}.exe",
+      "deleteAppDataOnUninstall": false,
+      "language": "1046"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Derciel",
+        "repo": "prosa",
+        "releaseType": "release"
+      }
+    ]
+  }
+}

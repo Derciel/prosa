@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prosa</title>
+  <link rel="stylesheet" href="ui.css">
+</head>
+<body data-page="settings">
+  <h1 data-i18n="settings.title"></h1>
+
+  <fieldset>
+    <legend data-i18n="settings.appearance"></legend>
+    <label class="row"><input type="checkbox" id="blurMessages"><span data-i18n="settings.blurMessages"></span></label>
+    <label class="row"><input type="checkbox" id="blurList"><span data-i18n="settings.blurList"></span></label>
+    <label class="field"><span data-i18n="settings.fontSize"></span>
+      <select id="fontSize">
+        <option value="small" data-i18n="settings.fontSmall"></option>
+        <option value="normal" data-i18n="settings.fontNormal"></option>
+        <option value="medium" data-i18n="settings.fontLarge"></option>
+        <option value="large" data-i18n="settings.fontXLarge"></option>
+      </select>
+    </label>
+    <label class="field"><span data-i18n="settings.customCss"></span></label>
+    <div class="inline">
+      <span class="name" id="cssName"></span>
+      <button type="button" class="secondary" id="cssChoose" data-i18n="settings.choose"></button>
+      <button type="button" class="secondary" id="cssClear" data-i18n="settings.remove"></button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend data-i18n="settings.privacy"></legend>
+    <label class="row"><input type="checkbox" id="lockEnabled"><span data-i18n="settings.lockEnabled"></span></label>
+    <div id="lockFields" class="hidden">
+      <label class="field" id="lockCurrentWrap"><span data-i18n="settings.lockCurrent"></span>
+        <input type="password" id="lockCurrent" autocomplete="off">
+      </label>
+      <label class="field"><span data-i18n="settings.lockNew"></span>
+        <input type="password" id="lockNew" autocomplete="new-password">
+      </label>
+      <label class="field"><span data-i18n="settings.lockNew2"></span>
+        <input type="password" id="lockNew2" autocomplete="new-password">
+      </label>
+      <label class="field"><span data-i18n="settings.lockAfter"></span>
+        <select id="lockAfterMinutes">
+          <option value="0" data-i18n="settings.lockNever"></option>
+          <option value="1" data-i18n="settings.lockMin1"></option>
+          <option value="5" data-i18n="settings.lockMin5"></option>
+          <option value="15" data-i18n="settings.lockMin15"></option>
+          <option value="30" data-i18n="settings.lockMin30"></option>
+          <option value="60" data-i18n="settings.lockMin60"></option>
+        </select>
+      </label>
+      <label class="row"><input type="checkbox" id="lockOnHide"><span data-i18n="settings.lockOnHide"></span></label>
+      <p class="hint" data-i18n="settings.lockHint"></p>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend data-i18n="settings.notifications"></legend>
+    <label class="row"><input type="checkbox" id="quietMode"><span data-i18n="settings.quietMode"></span></label>
+  </fieldset>
+
+  <fieldset>
+    <legend data-i18n="settings.system"></legend>
+    <label class="row"><input type="checkbox" id="trayIcon"><span data-i18n="settings.trayIcon"></span></label>
+    <label class="row"><input type="checkbox" id="startMinimized"><span data-i18n="settings.startMinimized"></span></label>
+    <label class="row"><input type="checkbox" id="autostart"><span data-i18n="settings.autostart"></span></label>
+    <label class="row"><input type="checkbox" id="autoHideMenuBar"><span data-i18n="settings.autoHideMenuBar"></span></label>
+    <label class="row"><input type="checkbox" id="disableGpu"><span data-i18n="settings.disableGpu"></span></label>
+    <label class="row"><input type="checkbox" id="globalShortcut"><span data-i18n="settings.globalShortcut"></span></label>
+    <label class="field"><span data-i18n="settings.language"></span>
+      <select id="language">
+        <option value="auto" data-i18n="settings.langAuto"></option>
+        <option value="pt-BR">Português (Brasil)</option>
+        <option value="en">English</option>
+      </select>
+    </label>
+  </fieldset>
+
+  <fieldset>
+    <legend data-i18n="settings.network"></legend>
+    <label class="row"><input type="checkbox" id="useProxy"><span data-i18n="settings.useProxy"></span></label>
+    <label class="field"><span data-i18n="settings.httpProxy"></span>
+      <input type="text" id="httpProxy" autocomplete="off" spellcheck="false">
+    </label>
+    <label class="field"><span data-i18n="settings.httpsProxy"></span>
+      <input type="text" id="httpsProxy" autocomplete="off" spellcheck="false">
+    </label>
+  </fieldset>
+
+  <div class="error" id="error" role="alert"></div>
+  <div class="actions">
+    <button type="button" class="secondary" id="cancel" data-i18n="settings.cancel"></button>
+    <button type="button" id="save" data-i18n="settings.save"></button>
+  </div>
+
+  <script src="ui.js"></script>
+</body>
+</html>

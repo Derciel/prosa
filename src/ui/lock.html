@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prosa</title>
+  <link rel="stylesheet" href="ui.css">
+</head>
+<body class="lock" data-page="lock">
+  <form class="lock-box" id="form" autocomplete="off">
+    <img class="emblem" src="emblem.png" alt="">
+    <h1 data-i18n="lock.title"></h1>
+    <p data-i18n="lock.prompt"></p>
+    <input type="password" id="password" data-i18n-placeholder="lock.password" autofocus>
+    <button type="submit" class="primary" data-i18n="lock.unlock"></button>
+    <div class="error" id="error" role="alert"></div>
+    <button type="button" class="link" id="forgot" data-i18n="lock.forgot"></button>
+  </form>
+  <script src="ui.js"></script>
+</body>
+</html>
