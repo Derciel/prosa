@@ -5,98 +5,257 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prosa</title>
-  <link rel="stylesheet" href="ui.css">
+  <link rel="stylesheet" href="settings.css">
 </head>
 <body data-page="settings">
-  <h1 data-i18n="settings.title"></h1>
+  <div class="shell">
 
-  <fieldset>
-    <legend data-i18n="settings.appearance"></legend>
-    <label class="row"><input type="checkbox" id="blurMessages"><span data-i18n="settings.blurMessages"></span></label>
-    <label class="row"><input type="checkbox" id="blurList"><span data-i18n="settings.blurList"></span></label>
-    <label class="field"><span data-i18n="settings.fontSize"></span>
-      <select id="fontSize">
-        <option value="small" data-i18n="settings.fontSmall"></option>
-        <option value="normal" data-i18n="settings.fontNormal"></option>
-        <option value="medium" data-i18n="settings.fontLarge"></option>
-        <option value="large" data-i18n="settings.fontXLarge"></option>
-      </select>
-    </label>
-    <label class="field"><span data-i18n="settings.customCss"></span></label>
-    <div class="inline">
-      <span class="name" id="cssName"></span>
-      <button type="button" class="secondary" id="cssChoose" data-i18n="settings.choose"></button>
-      <button type="button" class="secondary" id="cssClear" data-i18n="settings.remove"></button>
-    </div>
-  </fieldset>
+    <nav class="side" aria-label="Seções">
+      <div class="brand">
+        <img src="emblem.png" alt="" width="40" height="40">
+        <div>
+          <div class="brand-name">Prosa</div>
+          <div class="brand-version" id="brandVersion"></div>
+        </div>
+      </div>
 
-  <fieldset>
-    <legend data-i18n="settings.privacy"></legend>
-    <label class="row"><input type="checkbox" id="lockEnabled"><span data-i18n="settings.lockEnabled"></span></label>
-    <div id="lockFields" class="hidden">
-      <label class="field" id="lockCurrentWrap"><span data-i18n="settings.lockCurrent"></span>
-        <input type="password" id="lockCurrent" autocomplete="off">
-      </label>
-      <label class="field"><span data-i18n="settings.lockNew"></span>
-        <input type="password" id="lockNew" autocomplete="new-password">
-      </label>
-      <label class="field"><span data-i18n="settings.lockNew2"></span>
-        <input type="password" id="lockNew2" autocomplete="new-password">
-      </label>
-      <label class="field"><span data-i18n="settings.lockAfter"></span>
-        <select id="lockAfterMinutes">
-          <option value="0" data-i18n="settings.lockNever"></option>
-          <option value="1" data-i18n="settings.lockMin1"></option>
-          <option value="5" data-i18n="settings.lockMin5"></option>
-          <option value="15" data-i18n="settings.lockMin15"></option>
-          <option value="30" data-i18n="settings.lockMin30"></option>
-          <option value="60" data-i18n="settings.lockMin60"></option>
-        </select>
-      </label>
-      <label class="row"><input type="checkbox" id="lockOnHide"><span data-i18n="settings.lockOnHide"></span></label>
-      <p class="hint" data-i18n="settings.lockHint"></p>
-    </div>
-  </fieldset>
+      <button type="button" class="nav active" data-tab="general">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+        <span data-i18n="nav.general"></span>
+      </button>
+      <button type="button" class="nav" data-tab="appearance">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19 8 5l5 14M4.8 14h6.4M15 19l2.5-6.5L20 19M15.9 17h3.2"/></svg>
+        <span data-i18n="nav.appearance"></span>
+      </button>
+      <button type="button" class="nav" data-tab="privacy">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+        <span data-i18n="nav.privacy"></span>
+      </button>
+      <button type="button" class="nav bonus" data-tab="bonus">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/></svg>
+        <span data-i18n="nav.bonus"></span>
+      </button>
+      <button type="button" class="nav" data-tab="advanced">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/><circle cx="12" cy="17" r="1"/></svg>
+        <span data-i18n="nav.advanced"></span>
+      </button>
+      <div class="spacer"></div>
+      <button type="button" class="nav" data-tab="about">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.5 4.5L20 16"/><path d="M20 20v-4h-4"/></svg>
+        <span data-i18n="nav.about"></span>
+        <i class="dot hidden" id="updateDot"></i>
+      </button>
+    </nav>
 
-  <fieldset>
-    <legend data-i18n="settings.notifications"></legend>
-    <label class="row"><input type="checkbox" id="quietMode"><span data-i18n="settings.quietMode"></span></label>
-  </fieldset>
+    <main class="content">
+      <div class="pages">
 
-  <fieldset>
-    <legend data-i18n="settings.system"></legend>
-    <label class="row"><input type="checkbox" id="trayIcon"><span data-i18n="settings.trayIcon"></span></label>
-    <label class="row"><input type="checkbox" id="startMinimized"><span data-i18n="settings.startMinimized"></span></label>
-    <label class="row"><input type="checkbox" id="autostart"><span data-i18n="settings.autostart"></span></label>
-    <label class="row"><input type="checkbox" id="autoHideMenuBar"><span data-i18n="settings.autoHideMenuBar"></span></label>
-    <label class="row"><input type="checkbox" id="disableGpu"><span data-i18n="settings.disableGpu"></span></label>
-    <label class="row"><input type="checkbox" id="globalShortcut"><span data-i18n="settings.globalShortcut"></span></label>
-    <label class="field"><span data-i18n="settings.language"></span>
-      <select id="language">
-        <option value="auto" data-i18n="settings.langAuto"></option>
-        <option value="pt-BR">Português (Brasil)</option>
-        <option value="en">English</option>
-      </select>
-    </label>
-  </fieldset>
+        <!-- Geral -->
+        <section class="page" data-page="general">
+          <header class="page-head"><h1 data-i18n="gen.title"></h1><p data-i18n="gen.desc"></p></header>
+          <div class="card">
+            <label class="row">
+              <span class="txt"><b data-i18n="gen.language"></b></span>
+              <select id="language">
+                <option value="auto" data-i18n="gen.langAuto"></option>
+                <option value="pt-BR">Português (Brasil)</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+            <label class="row">
+              <span class="txt"><b data-i18n="gen.trayIcon"></b><small data-i18n="gen.trayIconHint"></small></span>
+              <span class="switch"><input type="checkbox" id="trayIcon"><i></i></span>
+            </label>
+            <label class="row">
+              <span class="txt"><b data-i18n="gen.startMinimized"></b></span>
+              <span class="switch"><input type="checkbox" id="startMinimized"><i></i></span>
+            </label>
+            <label class="row">
+              <span class="txt"><b data-i18n="gen.autostart"></b></span>
+              <span class="switch"><input type="checkbox" id="autostart"><i></i></span>
+            </label>
+            <label class="row">
+              <span class="txt"><b data-i18n="gen.autoHideMenuBar"></b></span>
+              <span class="switch"><input type="checkbox" id="autoHideMenuBar"><i></i></span>
+            </label>
+            <label class="row">
+              <span class="txt"><b data-i18n="gen.quietMode"></b></span>
+              <span class="switch"><input type="checkbox" id="quietMode"><i></i></span>
+            </label>
+            <label class="row">
+              <span class="txt"><b data-i18n="gen.globalShortcut"></b></span>
+              <span class="switch"><input type="checkbox" id="globalShortcut"><i></i></span>
+            </label>
+          </div>
+        </section>
 
-  <fieldset>
-    <legend data-i18n="settings.network"></legend>
-    <label class="row"><input type="checkbox" id="useProxy"><span data-i18n="settings.useProxy"></span></label>
-    <label class="field"><span data-i18n="settings.httpProxy"></span>
-      <input type="text" id="httpProxy" autocomplete="off" spellcheck="false">
-    </label>
-    <label class="field"><span data-i18n="settings.httpsProxy"></span>
-      <input type="text" id="httpsProxy" autocomplete="off" spellcheck="false">
-    </label>
-  </fieldset>
+        <!-- Aparência -->
+        <section class="page hidden" data-page="appearance">
+          <header class="page-head"><h1 data-i18n="ap.title"></h1><p data-i18n="ap.desc"></p></header>
+          <div class="card">
+            <label class="row">
+              <span class="txt"><b data-i18n="ap.fontSize"></b></span>
+              <select id="fontSize">
+                <option value="small" data-i18n="ap.fontSmall"></option>
+                <option value="normal" data-i18n="ap.fontNormal"></option>
+                <option value="medium" data-i18n="ap.fontLarge"></option>
+                <option value="large" data-i18n="ap.fontXLarge"></option>
+              </select>
+            </label>
+            <div class="row">
+              <span class="txt"><b data-i18n="ap.customCss"></b><small data-i18n="ap.customCssHint"></small></span>
+              <span class="file">
+                <span class="file-name" id="cssName"></span>
+                <button type="button" class="btn ghost" id="cssChoose" data-i18n="ap.choose"></button>
+                <button type="button" class="btn ghost" id="cssClear" data-i18n="ap.remove"></button>
+              </span>
+            </div>
+          </div>
+        </section>
 
-  <div class="error" id="error" role="alert"></div>
-  <div class="actions">
-    <button type="button" class="secondary" id="cancel" data-i18n="settings.cancel"></button>
-    <button type="button" id="save" data-i18n="settings.save"></button>
+        <!-- Privacidade e bloqueio -->
+        <section class="page hidden" data-page="privacy">
+          <header class="page-head"><h1 data-i18n="pv.title"></h1><p data-i18n="pv.desc"></p></header>
+          <div class="card">
+            <label class="row">
+              <span class="txt"><b data-i18n="pv.lockEnabled"></b></span>
+              <span class="switch"><input type="checkbox" id="lockEnabled"><i></i></span>
+            </label>
+            <div id="lockFields" class="hidden">
+              <label class="field" id="lockCurrentWrap"><span data-i18n="pv.lockCurrent"></span>
+                <input type="password" id="lockCurrent" autocomplete="off">
+              </label>
+              <label class="field"><span data-i18n="pv.lockNew"></span>
+                <input type="password" id="lockNew" autocomplete="new-password">
+              </label>
+              <label class="field"><span data-i18n="pv.lockNew2"></span>
+                <input type="password" id="lockNew2" autocomplete="new-password">
+              </label>
+              <label class="row">
+                <span class="txt"><b data-i18n="pv.lockAfter"></b></span>
+                <select id="lockAfterMinutes">
+                  <option value="0" data-i18n="pv.lockNever"></option>
+                  <option value="1" data-i18n="pv.lockMin1"></option>
+                  <option value="5" data-i18n="pv.lockMin5"></option>
+                  <option value="15" data-i18n="pv.lockMin15"></option>
+                  <option value="30" data-i18n="pv.lockMin30"></option>
+                  <option value="60" data-i18n="pv.lockMin60"></option>
+                </select>
+              </label>
+              <label class="row">
+                <span class="txt"><b data-i18n="pv.lockOnHide"></b></span>
+                <span class="switch"><input type="checkbox" id="lockOnHide"><i></i></span>
+              </label>
+              <p class="hint" data-i18n="pv.lockHint"></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bônus -->
+        <section class="page hidden" data-page="bonus">
+          <header class="page-head"><h1 data-i18n="bn.title"></h1><p data-i18n="bn.desc"></p></header>
+          <h2 class="group" data-i18n="bn.groupBlur"></h2>
+          <div class="card">
+            <label class="row">
+              <span class="txt"><b data-i18n="bn.blurMessages"></b></span>
+              <span class="switch"><input type="checkbox" id="blurMessages"><i></i></span>
+            </label>
+            <label class="row">
+              <span class="txt"><b data-i18n="bn.blurList"></b></span>
+              <span class="switch"><input type="checkbox" id="blurList"><i></i></span>
+            </label>
+            <label class="row">
+              <span class="txt"><b data-i18n="bn.blurNames"></b></span>
+              <span class="switch"><input type="checkbox" id="blurNames"><i></i></span>
+            </label>
+            <label class="row">
+              <span class="txt"><b data-i18n="bn.blurPhotos"></b></span>
+              <span class="switch"><input type="checkbox" id="blurPhotos"><i></i></span>
+            </label>
+            <label class="row">
+              <span class="txt"><b data-i18n="bn.blurComposer"></b></span>
+              <span class="switch"><input type="checkbox" id="blurComposer"><i></i></span>
+            </label>
+            <label class="row">
+              <span class="txt"><b data-i18n="bn.blurOnBlur"></b><small data-i18n="bn.blurOnBlurHint"></small></span>
+              <span class="switch"><input type="checkbox" id="blurOnBlur"><i></i></span>
+            </label>
+          </div>
+          <h2 class="group" data-i18n="bn.groupButton"></h2>
+          <div class="card">
+            <label class="row">
+              <span class="txt"><b data-i18n="bn.bonusButton"></b><small data-i18n="bn.bonusButtonHint"></small></span>
+              <span class="switch"><input type="checkbox" id="bonusButton"><i></i></span>
+            </label>
+          </div>
+          <p class="hint" data-i18n="bn.note"></p>
+        </section>
+
+        <!-- Avançado -->
+        <section class="page hidden" data-page="advanced">
+          <header class="page-head"><h1 data-i18n="adv.title"></h1><p data-i18n="adv.desc"></p></header>
+          <h2 class="group" data-i18n="adv.groupPerf"></h2>
+          <div class="card">
+            <label class="row">
+              <span class="txt"><b data-i18n="adv.disableGpu"></b><small data-i18n="adv.disableGpuHint"></small></span>
+              <span class="switch"><input type="checkbox" id="disableGpu"><i></i></span>
+            </label>
+          </div>
+          <h2 class="group" data-i18n="adv.groupNetwork"></h2>
+          <div class="card">
+            <label class="row">
+              <span class="txt"><b data-i18n="adv.useProxy"></b></span>
+              <span class="switch"><input type="checkbox" id="useProxy"><i></i></span>
+            </label>
+            <label class="field"><span data-i18n="adv.httpProxy"></span>
+              <input type="text" id="httpProxy" autocomplete="off" spellcheck="false">
+            </label>
+            <label class="field"><span data-i18n="adv.httpsProxy"></span>
+              <input type="text" id="httpsProxy" autocomplete="off" spellcheck="false">
+            </label>
+          </div>
+        </section>
+
+        <!-- Atualizações e sobre -->
+        <section class="page hidden" data-page="about">
+          <header class="page-head"><h1 data-i18n="ab.title"></h1><p data-i18n="ab.desc"></p></header>
+          <div class="card update" id="updateCard" data-state="idle">
+            <div class="update-top">
+              <div class="update-icon" aria-hidden="true">
+                <svg class="ic-ok" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+                <svg class="ic-spin" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.5 4.5L20 16"/><path d="M20 20v-4h-4"/></svg>
+                <svg class="ic-down" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>
+                <svg class="ic-warn" viewBox="0 0 24 24"><path d="M12 8v5"/><path d="M12 16.5h0"/><circle cx="12" cy="12" r="9"/></svg>
+              </div>
+              <div class="update-text">
+                <div class="update-version"><span data-i18n="ab.installed"></span>: <b id="currentVersion"></b></div>
+                <div class="update-status" id="updateStatus" role="status" aria-live="polite"></div>
+              </div>
+            </div>
+            <div class="progress hidden" id="updateProgress"><i id="updateBar"></i></div>
+            <div class="update-actions">
+              <button type="button" class="btn" id="updateCheck" data-i18n="up.check"></button>
+              <button type="button" class="btn primary hidden" id="updateInstall" data-i18n="up.restart"></button>
+            </div>
+          </div>
+          <div class="card about">
+            <p data-i18n="ab.disclaimer"></p>
+            <p class="muted" data-i18n="ab.credits"></p>
+            <button type="button" class="link" id="openSource" data-i18n="ab.source"></button>
+          </div>
+        </section>
+
+      </div>
+
+      <footer class="foot" id="foot">
+        <span class="msg" id="message" role="status" aria-live="polite"></span>
+        <button type="button" class="btn ghost" id="close" data-i18n="settings.close"></button>
+        <button type="button" class="btn primary" id="save" data-i18n="settings.save"></button>
+      </footer>
+    </main>
   </div>
 
-  <script src="ui.js"></script>
+  <script src="common.js"></script>
+  <script src="settings.js"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@ const log = require('electron-log/main');
 const config = require('./config');
 const i18n = require('./i18n');
 const password = require('./password');
+const updates = require('./updates');
 
 const t = i18n.t;
 const WA_URL = 'https://web.whatsapp.com';
@@ -36,7 +37,92 @@ const BLUR_LIST_CSS =
     LIST + ROW + ':not(' + ROW + ' ' + ROW + ') { filter: blur(6px); transition: filter .12s ease; }' +
     LIST + ROW + ':not(' + ROW + ' ' + ROW + '):hover { filter: none; }';
 
+// Contact names: the chat title spans carry the name in their title attribute. Hovering the row (or the
+// conversation header) brings them back.
+const NAMES = '#pane-side span[title], #main header span[title], #main header [data-testid="conversation-info-header-chat-title"]';
+const BLUR_NAMES_CSS =
+    NAMES + ' { filter: blur(5px); transition: filter .12s ease; }' +
+    '#pane-side ' + ROW + ':hover span[title], #main header:hover span[title],' +
+    '#main header:hover [data-testid="conversation-info-header-chat-title"] { filter: none; }';
+
+// Contact photos. Emoji images are left alone (they are images too, but they are text to the reader).
+const PHOTO = 'img:not([data-plain-text]):not(.emoji)';
+const BLUR_PHOTOS_CSS =
+    '#pane-side ' + PHOTO + ', #main header ' + PHOTO + ', img[src*="pps.whatsapp.net"] { filter: blur(6px); transition: filter .12s ease; }' +
+    '#pane-side ' + ROW + ':hover ' + PHOTO + ', #main header:hover ' + PHOTO + ', img[src*="pps.whatsapp.net"]:hover { filter: none; }';
+
+// The typing field comes back while the mouse is over it or it has the cursor
+const COMPOSER = '#main footer :is([contenteditable="true"], [role="textbox"])';
+const BLUR_COMPOSER_CSS =
+    COMPOSER + ' { filter: blur(5px); transition: filter .12s ease; }' +
+    '#main footer:hover :is([contenteditable="true"], [role="textbox"]),' +
+    '#main footer:focus-within :is([contenteditable="true"], [role="textbox"]) { filter: none; }';
+
+// Blur everything while Prosa is not the focused window. main.js flips the data-prosa-away attribute.
+const BLUR_AWAY_CSS = 'html[data-prosa-away] #app { filter: blur(16px); transition: filter .15s ease; }';
+
+// Round button on the WhatsApp sidebar that opens the bonus settings. It is placed with fixed positioning
+// above the avatar so it does not depend on WhatsApp's own markup, and hidden when the window is narrow.
+const BONUS_BUTTON_CSS =
+    '#prosa-bonus-button { position: fixed; left: 14px; bottom: 112px; z-index: 50; display: flex; align-items: center;' +
+    ' justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;' +
+    ' background: linear-gradient(135deg, #0a6f57, #2fc29b); box-shadow: 0 1px 5px rgba(0, 0, 0, .35);' +
+    ' transition: transform .12s ease, box-shadow .12s ease; }' +
+    '#prosa-bonus-button:hover { transform: scale(1.1); box-shadow: 0 2px 8px rgba(0, 0, 0, .45); }' +
+    '#prosa-bonus-button:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }' +
+    '#prosa-bonus-button svg { width: 20px; height: 20px; fill: none; stroke: #ffffff; stroke-width: 1.8;' +
+    ' stroke-linecap: round; stroke-linejoin: round; }' +
+    '@media (max-width: 700px) { #prosa-bonus-button { display: none; } }';
+
+// These two run inside the WhatsApp page (they are sent as source text), so they only use plain DOM APIs,
+// and build the button with createElementNS because the page may enforce Trusted Types.
+function injectBonusButton(title) {
+    var SVG = 'http://www.w3.org/2000/svg';
+    window.__prosaBonusTitle = title;
+    function build() {
+        var btn = document.getElementById('prosa-bonus-button');
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'prosa-bonus-button';
+            btn.type = 'button';
+            var svg = document.createElementNS(SVG, 'svg');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            ['M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z', 'M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z']
+                .forEach(function (d) {
+                    var path = document.createElementNS(SVG, 'path');
+                    path.setAttribute('d', d);
+                    svg.appendChild(path);
+                });
+            btn.appendChild(svg);
+            btn.addEventListener('click', function () {
+                if (window.prosaBridge) { window.prosaBridge.openBonus(); }
+            });
+            document.body.appendChild(btn);
+        }
+        btn.title = window.__prosaBonusTitle;
+        btn.setAttribute('aria-label', window.__prosaBonusTitle);
+    }
+    build();
+    // WhatsApp re-renders its tree now and then: put the button back if it was taken out
+    if (!window.__prosaBonusObserver) {
+        window.__prosaBonusObserver = new MutationObserver(function () {
+            if (!document.getElementById('prosa-bonus-button')) { build(); }
+        });
+        window.__prosaBonusObserver.observe(document.body, { childList: true });
+    }
+}
+
+function removeBonusButton() {
+    var btn = document.getElementById('prosa-bonus-button');
+    if (btn) { btn.remove(); }
+    if (window.__prosaBonusObserver) {
+        window.__prosaBonusObserver.disconnect();
+        window.__prosaBonusObserver = null;
+    }
+}
+
 const ZOOM = { small: 0.9, normal: 1, medium: 1.1, large: 1.25 };
+const SOURCE_URL = 'https://github.com/Derciel/prosa';
 
 // ---------------------------------------------------------------------------------------------
 // State
@@ -44,8 +130,8 @@ const ZOOM = { small: 0.9, normal: 1, medium: 1.1, large: 1.25 };
 let mainWindow = null;
 let lockWindow = null;
 let settingsWindow = null;
-let aboutWindow = null;
 let tray = null;
+let pendingRestartPrompt = '';
 let locked = false;
 let quitting = false;
 let hasUnread = false;
@@ -154,15 +240,49 @@ async function applyPageStyles(reset) {
     }
     pageStyleKeys = [];
     try {
-        if (config.get('blurMessages')) {
-            pageStyleKeys.push(await wc.insertCSS(BLUR_MESSAGES_CSS));
+        var wanted = [
+            ['blurMessages', BLUR_MESSAGES_CSS],
+            ['blurList', BLUR_LIST_CSS],
+            ['blurNames', BLUR_NAMES_CSS],
+            ['blurPhotos', BLUR_PHOTOS_CSS],
+            ['blurComposer', BLUR_COMPOSER_CSS],
+            ['blurOnBlur', BLUR_AWAY_CSS],
+            ['bonusButton', BONUS_BUTTON_CSS]
+        ];
+        for (var j = 0; j < wanted.length; j++) {
+            if (config.get(wanted[j][0])) {
+                pageStyleKeys.push(await wc.insertCSS(wanted[j][1]));
+            }
         }
-        if (config.get('blurList')) {
-            pageStyleKeys.push(await wc.insertCSS(BLUR_LIST_CSS));
-        }
+        await applyBonusButton();
+        await syncAway();
     } catch (e) {
-        log.warn('Não foi possível aplicar o desfoque: ' + e);
+        log.warn('Não foi possível aplicar os estilos da página: ' + e);
     }
+}
+
+// Puts the sidebar button into the page, or takes it out when it is turned off
+function applyBonusButton() {
+    if (!alive(mainWindow)) {
+        return Promise.resolve();
+    }
+    var source = config.get('bonusButton')
+        ? '(' + injectBonusButton.toString() + ')(' + JSON.stringify(t('btn.bonus')) + ')'
+        : '(' + removeBonusButton.toString() + ')()';
+    return mainWindow.webContents.executeJavaScript(source).catch(function (e) {
+        log.warn('Botão lateral: ' + e);
+    });
+}
+
+// "Blur when Prosa loses focus": the CSS reacts to an attribute on <html> that follows the window focus
+function syncAway() {
+    if (!alive(mainWindow)) {
+        return Promise.resolve();
+    }
+    var away = config.get('blurOnBlur') === true && !mainWindow.isFocused();
+    return mainWindow.webContents.executeJavaScript(
+        'document.documentElement.toggleAttribute("data-prosa-away", ' + away + ')'
+    ).catch(function () {});
 }
 
 async function onDomReady() {
@@ -224,6 +344,7 @@ function createMainWindow() {
         autoHideMenuBar: config.get('autoHideMenuBar'),
         icon: path.join(ASSETS_DIR, 'icon.png'),
         webPreferences: {
+            preload: path.join(__dirname, 'preload-main.js'),
             contextIsolation: true,
             sandbox: true,
             nodeIntegration: false,
@@ -312,6 +433,8 @@ function createMainWindow() {
         syncLockWindow();
         if (config.get('lockOnHide')) { lockApp(); }
     });
+    mainWindow.on('focus', syncAway);
+    mainWindow.on('blur', syncAway);
     mainWindow.on('closed', function () { mainWindow = null; });
 
     wc.setUserAgent(userAgent);
@@ -509,7 +632,7 @@ function lockApp() {
     }
     locked = true;
     throttle.reset();
-    [settingsWindow, aboutWindow].forEach(function (win) { if (alive(win)) { win.destroy(); } });
+    if (alive(settingsWindow)) { settingsWindow.destroy(); }
 
     // Taskbar thumbnails, screenshots and screen sharing show a black window while locked
     mainWindow.setContentProtection(true);
@@ -565,6 +688,12 @@ function unlockApp() {
         mainWindow.focus();
     }
     log.info('Prosa desbloqueado');
+    // An update that finished downloading while locked is offered now
+    if (pendingRestartPrompt) {
+        var version = pendingRestartPrompt;
+        pendingRestartPrompt = '';
+        promptRestart(version);
+    }
 }
 
 function lockOrConfigure() {
@@ -630,7 +759,7 @@ function startIdleWatcher() {
 // ---------------------------------------------------------------------------------------------
 // Settings and About windows
 // ---------------------------------------------------------------------------------------------
-function openUiWindow(file, options) {
+function openUiWindow(file, options, hash) {
     var win = new BrowserWindow(Object.assign({
         show: false,
         center: true,
@@ -648,39 +777,41 @@ function openUiWindow(file, options) {
         }
     }, options));
     win.setMenu(null);
-    win.loadFile(path.join(UI_DIR, file));
+    win.loadFile(path.join(UI_DIR, file), hash ? { hash: hash } : undefined);
     win.once('ready-to-show', function () { win.show(); });
     return win;
 }
 
-function openSettings() {
+var SETTINGS_TABS = ['general', 'appearance', 'privacy', 'bonus', 'advanced', 'about'];
+
+// One window with a side menu holds everything: tab is one of SETTINGS_TABS
+function openSettings(tab) {
     if (locked) {
         return;
     }
+    var target = SETTINGS_TABS.indexOf(tab) >= 0 ? tab : 'general';
     if (alive(settingsWindow)) {
+        if (settingsWindow.isMinimized()) {
+            settingsWindow.restore();
+        }
         settingsWindow.show();
         settingsWindow.focus();
+        settingsWindow.webContents.send('ui:goto', target);
         return;
     }
-    settingsWindow = openUiWindow('settings.html', { width: 580, height: 760, resizable: true });
+    settingsWindow = openUiWindow('settings.html', {
+        width: 880,
+        height: 660,
+        minWidth: 640,
+        minHeight: 480,
+        resizable: true
+    }, target);
     settingsWindow.on('closed', function () { settingsWindow = null; });
 }
 
-function openAbout() {
-    if (locked) {
-        return;
-    }
-    if (alive(aboutWindow)) {
-        aboutWindow.show();
-        aboutWindow.focus();
-        return;
-    }
-    aboutWindow = openUiWindow('about.html', { width: 520, height: 400, resizable: false });
-    aboutWindow.on('closed', function () { aboutWindow = null; });
-}
-
-var BOOLEAN_KEYS = ['blurMessages', 'blurList', 'quietMode', 'lockEnabled', 'lockOnHide', 'trayIcon',
-    'startMinimized', 'autostart', 'autoHideMenuBar', 'disableGpu', 'globalShortcut', 'useProxy'];
+var BOOLEAN_KEYS = ['blurMessages', 'blurList', 'blurNames', 'blurPhotos', 'blurComposer', 'blurOnBlur', 'bonusButton',
+    'quietMode', 'lockEnabled', 'lockOnHide', 'trayIcon', 'startMinimized', 'autostart', 'autoHideMenuBar',
+    'disableGpu', 'globalShortcut', 'useProxy'];
 var PROXY_RE = /^[A-Za-z0-9._\-:\[\]@]{0,200}$/;
 
 ipcMain.on('ui:strings', function (event) {
@@ -689,6 +820,42 @@ ipcMain.on('ui:strings', function (event) {
 
 ipcMain.handle('ui:info', function (event) {
     return fromOurUi(event) ? { version: app.getVersion() } : {};
+});
+
+ipcMain.on('ui:open-source', function (event) {
+    if (fromOurUi(event)) {
+        shell.openExternal(SOURCE_URL);
+    }
+});
+
+// The button on the WhatsApp sidebar. Only the main window, showing WhatsApp, may ask for it.
+ipcMain.on('bonus:open', function (event) {
+    var fromMain = alive(mainWindow) && event.sender === mainWindow.webContents;
+    var url = event.senderFrame ? event.senderFrame.url : '';
+    if (fromMain && isWhatsAppHost(url)) {
+        openSettings('bonus');
+    }
+});
+
+// Update panel: the window asks for the state, starts a check, or installs a downloaded version
+ipcMain.handle('update:get', function (event) {
+    return fromOurUi(event) ? updates.getState() : {};
+});
+ipcMain.on('update:check', function (event) {
+    if (fromOurUi(event) && !locked) {
+        updates.check();
+    }
+});
+ipcMain.on('update:install', function (event) {
+    if (fromOurUi(event) && !locked && updates.getState().status === 'downloaded') {
+        quitting = true;
+        updates.install();
+    }
+});
+updates.onChange(function (state) {
+    if (alive(settingsWindow)) {
+        settingsWindow.webContents.send('update:state', state);
+    }
 });
 
 ipcMain.on('ui:close', function (event) {
@@ -869,9 +1036,18 @@ function buildMenu() {
         {
             label: t('menu.file'),
             submenu: [
-                { label: t('menu.settings'), accelerator: 'CmdOrCtrl+,', click: openSettings },
-                { label: t('menu.checkUpdates'), click: function () { checkForUpdates(true); } },
-                { label: t('menu.about'), click: openAbout },
+                { label: t('menu.settings'), accelerator: 'CmdOrCtrl+,', click: function () { openSettings('general'); } },
+                { label: t('menu.bonus'), accelerator: 'CmdOrCtrl+Shift+B', click: function () { openSettings('bonus'); } },
+                {
+                    // The result shows in the updates page, which opens right away so there is always feedback
+                    label: t('menu.checkUpdates'),
+                    click: function () {
+                        if (locked) { return; }
+                        openSettings('about');
+                        updates.check();
+                    }
+                },
+                { label: t('menu.about'), click: function () { openSettings('about'); } },
                 { type: 'separator' },
                 { label: t('menu.quit'), accelerator: 'CmdOrCtrl+Q', click: function () { app.quit(); } }
             ]
@@ -946,64 +1122,38 @@ function buildMenu() {
 // ---------------------------------------------------------------------------------------------
 // Updates
 // ---------------------------------------------------------------------------------------------
-var updater = null;
-var manualUpdateCheck = false;
+// A version that finished downloading in the background is offered in a dialog attached to the main window
+// (never while the app is locked: it waits for the unlock).
+function promptRestart(version) {
+    if (locked) {
+        pendingRestartPrompt = version;
+        return;
+    }
+    var options = {
+        type: 'info',
+        message: t('update.downloaded'),
+        detail: version,
+        buttons: [t('update.restart'), t('update.later')],
+        defaultId: 0,
+        cancelId: 1
+    };
+    var parent = alive(mainWindow) && mainWindow.isVisible() && !mainWindow.isMinimized() ? mainWindow : null;
+    (parent ? dialog.showMessageBox(parent, options) : dialog.showMessageBox(options)).then(function (result) {
+        if (result.response === 0) {
+            quitting = true;
+            updates.install();
+        }
+    });
+}
 
 function setupUpdater() {
-    // Only an installed build has update information, and the update server may not exist yet
+    updates.init({ onDownloaded: promptRestart });
     if (!app.isPackaged) {
         return;
     }
-    try {
-        updater = require('electron-updater').autoUpdater;
-        updater.logger = log;
-        updater.autoDownload = true;
-        updater.autoInstallOnAppQuit = true;
-        updater.on('update-not-available', function () {
-            if (manualUpdateCheck) {
-                manualUpdateCheck = false;
-                dialog.showMessageBox({ type: 'info', message: t('update.none'), buttons: ['OK'] });
-            }
-        });
-        updater.on('error', function (e) {
-            log.warn('Erro na atualização: ' + e);
-            if (manualUpdateCheck) {
-                manualUpdateCheck = false;
-                dialog.showMessageBox({ type: 'warning', message: t('update.error'), buttons: ['OK'] });
-            }
-        });
-        updater.on('update-downloaded', function () {
-            manualUpdateCheck = false;
-            dialog.showMessageBox({
-                type: 'info',
-                message: t('update.downloaded'),
-                buttons: [t('update.restart'), t('update.later')],
-                defaultId: 0,
-                cancelId: 1
-            }).then(function (result) {
-                if (result.response === 0) {
-                    quitting = true;
-                    updater.quitAndInstall();
-                }
-            });
-        });
-        // Checked a little after startup so it never competes with loading the chats
-        setTimeout(function () { checkForUpdates(false); }, 20000);
-        setInterval(function () { checkForUpdates(false); }, 6 * 60 * 60 * 1000);
-    } catch (e) {
-        log.warn('Atualização automática indisponível: ' + e);
-    }
-}
-
-function checkForUpdates(manual) {
-    if (!updater) {
-        if (manual) {
-            dialog.showMessageBox({ type: 'info', message: t('update.none'), buttons: ['OK'] });
-        }
-        return;
-    }
-    manualUpdateCheck = manual;
-    updater.checkForUpdates().catch(function (e) { log.warn('Erro ao verificar atualizações: ' + e); });
+    // Checked a little after startup so it never competes with loading the chats
+    setTimeout(updates.check, 20000);
+    setInterval(updates.check, 6 * 60 * 60 * 1000);
 }
 
 // ---------------------------------------------------------------------------------------------

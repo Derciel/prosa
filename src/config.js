@@ -12,6 +12,11 @@ const defaults = {
     quietMode: false,
     blurMessages: false,
     blurList: false,
+    blurNames: false,
+    blurPhotos: false,
+    blurComposer: false,
+    blurOnBlur: false,
+    bonusButton: true,
     fontSize: 'normal',
     customCss: '',
     lockEnabled: false,
@@ -41,7 +46,8 @@ function file() {
 
 function load() {
     try {
-        const data = JSON.parse(fs.readFileSync(file(), 'utf-8'));
+        // Editors such as Notepad save a BOM at the start of the file, which JSON.parse rejects
+        const data = JSON.parse(fs.readFileSync(file(), 'utf-8').replace(/^﻿/, ''));
         settings = Object.assign({}, defaults, data);
         log.info('Configuração carregada');
     } catch (e) {

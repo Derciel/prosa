@@ -9,7 +9,11 @@ Este código também é GPL-3.0: quem receber o instalador tem direito de recebe
 ## O que tem
 
 - Interface em português (Brasil), com inglês como alternativa. O idioma segue o Windows.
-- **Desfoque de mensagens**: as mensagens da conversa e/ou a lista de conversas ficam desfocadas e ficam nítidas ao passar o mouse. Atalho `Ctrl+Alt+B` para as mensagens.
+- **Configurações bônus** (aba "Bônus" e botão redondo verde na lateral do WhatsApp): desfoque de privacidade com revelação ao passar o mouse, item por item.
+  - Mensagens da conversa (`Ctrl+Alt+B` liga e desliga), lista de conversas, nomes dos contatos, fotos dos contatos e campo de digitação.
+  - "Desfocar tudo quando o Prosa perder o foco": ao trocar de janela, a tela inteira fica desfocada.
+- **Janela de configurações com menu lateral**: Geral, Aparência, Privacidade e bloqueio, Bônus, Avançado e Atualizações e sobre. `Ctrl+,` abre, `Ctrl+Shift+B` abre direto nos bônus.
+- **Atualizações visíveis**: *Arquivo > Verificar atualizações* abre a página de atualizações, que mostra verificando, baixando (com barra de progresso), pronta para instalar, sem conexão ou já na versão mais recente.
 - **Bloqueio com senha**: o Prosa abre bloqueado, bloqueia após inatividade (1 a 60 min), ao minimizar/ocultar e ao bloquear o Windows. `Ctrl+L` bloqueia na hora.
   - A senha é guardada só como hash (scrypt com sal).
   - 5 erros seguidos travam a tentativa por 30 segundos.
