@@ -29,10 +29,12 @@ const BLUR_MESSAGES_CSS =
     '#main [role="row"]:hover ' + MSG + ':not(' + MSG + ' ' + MSG + '),' +
     '#main ' + MSG + ':not(' + MSG + ' ' + MSG + '):hover { filter: none; }';
 
+// The chat list lives in #pane-side, but the Archived screen is a separate drawer outside it.
 const ROW = ':is([role="listitem"], [role="row"])';
+const LIST = ':is(#pane-side, [data-testid="archived-drawer"]) ';
 const BLUR_LIST_CSS =
-    '#pane-side ' + ROW + ':not(' + ROW + ' ' + ROW + ') { filter: blur(6px); transition: filter .12s ease; }' +
-    '#pane-side ' + ROW + ':not(' + ROW + ' ' + ROW + '):hover { filter: none; }';
+    LIST + ROW + ':not(' + ROW + ' ' + ROW + ') { filter: blur(6px); transition: filter .12s ease; }' +
+    LIST + ROW + ':not(' + ROW + ' ' + ROW + '):hover { filter: none; }';
 
 const ZOOM = { small: 0.9, normal: 1, medium: 1.1, large: 1.25 };
 
