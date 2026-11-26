@@ -102,7 +102,7 @@ const dictionaries = {
         'about.desc': 'Cliente desktop não oficial para o WhatsApp Web, feito com Electron.',
         'about.disclaimer': 'Este NÃO é um produto oficial do WhatsApp nem da Meta. O Prosa apenas abre o WhatsApp Web, como um navegador faria, sem alterar nem reimplementar o serviço.',
         'about.version': 'Versão',
-        'about.credits': 'Baseado no projeto whatsapp-desktop, licenciado sob a GPL-3.0. O código-fonte acompanha este programa.',
+        'about.credits': 'Criado por Derciel Junior. Baseado no projeto whatsapp-desktop, licenciado sob a GPL-3.0. O código-fonte acompanha este programa.',
 
         'update.downloaded': 'Uma nova versão do Prosa foi baixada.',
         'update.restart': 'Reiniciar agora',
@@ -210,7 +210,7 @@ const dictionaries = {
         'about.desc': 'Unofficial desktop client for WhatsApp Web, built with Electron.',
         'about.disclaimer': 'This is NOT an official WhatsApp or Meta product. Prosa only opens WhatsApp Web, as a browser would, without changing or reimplementing the service.',
         'about.version': 'Version',
-        'about.credits': 'Based on the whatsapp-desktop project, licensed under the GPL-3.0. The source code comes with this program.',
+        'about.credits': 'Created by Derciel Junior. Based on the whatsapp-desktop project, licensed under the GPL-3.0. The source code comes with this program.',
 
         'update.downloaded': 'A new version of Prosa has been downloaded.',
         'update.restart': 'Restart now',

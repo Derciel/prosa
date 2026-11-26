@@ -1,9 +1,9 @@
 {
   "name": "prosa",
   "productName": "Prosa",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Cliente desktop não oficial para o WhatsApp Web, em português.",
-  "author": "Nicopel",
+  "author": "Derciel Junior",
   "license": "GPL-3.0",
   "main": "src/main.js",
   "scripts": {
@@ -22,7 +22,9 @@
   "build": {
     "appId": "br.com.nicopel.prosa",
     "productName": "Prosa",
-    "copyright": "Baseado no whatsapp-desktop (GPL-3.0)",
+    "copyright": "Copyright © 2026 Derciel Junior. Baseado no whatsapp-desktop (GPL-3.0)",
+    "compression": "maximum",
+    "electronLanguages": ["pt-BR", "en-US"],
     "directories": {
       "output": "dist"
     },
@@ -44,6 +46,8 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Prosa",
+      "uninstallDisplayName": "Prosa",
+      "runAfterFinish": true,
       "artifactName": "Prosa-Setup-${version}.exe",
       "deleteAppDataOnUninstall": false,
       "language": "1046"

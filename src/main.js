@@ -1014,6 +1014,13 @@ function start() {
     // Must be decided before the app is ready
     if (config.get('disableGpu')) {
         app.disableHardwareAcceleration();
+    } else {
+        // Let the graphics card do the painting: GPU rasterization and zero-copy uploads keep the blur and scrolling
+        // off the CPU, and ignoring the driver blocklist keeps acceleration on for older drivers that Chromium would
+        // otherwise switch to software. "Disable hardware acceleration" in the settings turns all of this off.
+        app.commandLine.appendSwitch('ignore-gpu-blocklist');
+        app.commandLine.appendSwitch('enable-gpu-rasterization');
+        app.commandLine.appendSwitch('enable-zero-copy');
     }
     app.setAppUserModelId('br.com.nicopel.prosa');
     pendingGroupLink = extractGroupLink(process.argv.slice(1));
@@ -1064,6 +1071,11 @@ function start() {
         applyAutostart();
         startIdleWatcher();
         setupUpdater();
+        // Leaves a trace in the log of whether the graphics card is really in use
+        setTimeout(function () {
+            var s = app.getGPUFeatureStatus();
+            log.info('GPU: composição=' + s.gpu_compositing + ', rasterização=' + s.rasterization + ', canvas=' + s['2d_canvas']);
+        }, 15000);
     });
 }
 
